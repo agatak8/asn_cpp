@@ -6,3 +6,7 @@ Makefile
 CMakeCache.txt
 CMakeFiles/*
 googletest/CMakeFiles/*/*
+googletest/CMakeFiles
+*.bin
+*.der
+*.ber

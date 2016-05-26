@@ -270,6 +270,26 @@ TEST(INTEGER, manyInts)
     }
     
 }
+TEST(UTF8STRING, manyStrings)
+{
+    std::ifstream f("test_str.txt"); // 10000 losowych stringow utf8 8)
+    if (f.is_open())
+    {
+        ASN_UTF8STRING z;
+        std::string tmp;
+        BYTE_BUF buf;
+        while (f >> tmp)
+        {
+            buf.clear();
+            z = tmp;
+            z.writeToBuf(buf);
+            z = "";
+            z.readFromBuf(buf);
+            EXPECT_EQ((std::string)z, tmp);
+        }
+        f.close();
+    }
+}
 
 int main(int argc, char **argv) 
 {
