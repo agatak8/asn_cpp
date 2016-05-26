@@ -19,7 +19,7 @@ def TestStr():
     test_str = open("test_str.txt", "w")
     
     for i in range(0, 10000+1):
-        length = randint(3, 30)
+        length = randint(3, 128)
         s = ""
         for j in range(0, length+1):
             s += chars[randint(0, len(chars)-1)]
