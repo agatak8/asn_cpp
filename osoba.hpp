@@ -10,8 +10,10 @@
 #include <iostream>
 #include "asn.hpp"
 
+/// flagi zainteresowań
 enum interests {NARTY=1, LYZWY=2, KSIAZKI=4, PLYWANIE=8};
 
+/// klasa Osoba jako przykład użycia ASN_SEQUENCE
 class Osoba: public ASN_SEQUENCE, public IDisplayable
 {
     public:

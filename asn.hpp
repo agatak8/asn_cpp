@@ -133,7 +133,7 @@ class ASNobject: public IStorable
         }
 };
 
-/// \brief klasa ASN_INTEGERA
+/// \brief klasa ASN_INTEGER
 ///
 /// tag: 0x02
 ///
@@ -354,7 +354,7 @@ class ASN_ENUMERATED: public ASN_INTEGER
     
 };
 
-/// \brief Klasa ASN_UTR8STRING
+/// \brief Klasa ASN_UTF8STRING
 ///
 /// tag: 0x0C
 ///

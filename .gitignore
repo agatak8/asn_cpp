@@ -10,3 +10,4 @@ googletest/CMakeFiles
 *.bin
 *.der
 *.ber
+docs/
