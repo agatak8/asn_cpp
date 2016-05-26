@@ -15,15 +15,22 @@
 #include "types.hpp"
 
 
+/// \brief główna klasa ASN
+///
+/// Zawiera interfejs zapisu/odczytu do/z bufora bajtów BYTE_BUF,
+///  wartości tag i length zawarte w każdym obiekcie ASN
+///  i funkcje zapisu tychże.
 class ASNobject: public IStorable
 {
     protected:
         BYTE tag;
         uint length;
+        /// flaga, czy obiekt ma ustawioną wartość
         bool isSet = false;
         
 	public:
-        int fullSize() // calkowity rozmiar w bajtach
+        /// zwraca całkowity rozmiar obiektu w bajtach po serializacji
+        int fullSize()
         {
             if (length < 128)
                 return 2 + length;  // 1 na tag,
@@ -43,8 +50,17 @@ class ASNobject: public IStorable
                                                 // length na bajty zawartosci
             }
         }
-		virtual void writeToBuf(BYTE_BUF &buf) = 0; // serializacja
-		virtual void readFromBuf(const BYTE_BUF &buf, uint offset = 0) = 0; // deserializacja
+        /// serializacja
+		virtual void writeToBuf(BYTE_BUF &buf) = 0;
+        /// deserializacja
+		virtual void readFromBuf(const BYTE_BUF &buf, uint offset = 0) = 0;
+        
+        /// \brief metoda zapisu tagu i długości do bufora
+        /// Najpierw zapisuje bajt tagu. 
+        /// Jeśli długość < 128 to zapisuje ją na jednym bajcie,
+        ///  w przeciwnym wypadku pierwszy bit pierwszego bajtu to 1
+        ///  a pozostałe bity kodują na ilu bajtach zakodowana jest długość. 
+        ///  Drugi i kolejne bajty kodują długość jako unsigned int.
         
         void writeTLToBuf(BYTE_BUF &buf)
         {
@@ -54,7 +70,7 @@ class ASNobject: public IStorable
             else //TODO
             {
                 uint tmp_len = length;
-                BYTE len_of_len = 1;
+                BYTE len_of_len = 1; // na ilu bajtach zakodowana dlugosc
                 while(tmp_len = (tmp_len >> 8))
                 {
                     len_of_len++;
@@ -64,35 +80,51 @@ class ASNobject: public IStorable
                 
                 for(int i = 0; i < len_of_len; i++)
                 {
-                    buf.push_back((length & (0xFF << 8*(len_of_len - i - 1))) >> 8*(len_of_len - i - 1)); // nakladamy maske i dosuwamy do prawej aby otrzymac bajt
+                    buf.push_back((length & (0xFF << 8*(len_of_len - i - 1))) >> 8*(len_of_len - i - 1));
+                    // maska poprzez AND z odp przesunietym 0xFF da dany bajt inta
+                    //
+                    // 0xFF = 1111 1111
+                    // i = 0 -> przesuwamy 0xFF do najstarszego bajtu
+                    // i = len_of_len - 1 -> 0xFF zostaje, to najmlodszy bajt
+                    // 
+                    // length & przesuniete 0xFF -> dany bajt inta ktory jeszcze trzeba przesunac na najmlodszy bajt
                 }
                 
             }
         }
         
-        std::pair<int, int> readLength(const BYTE_BUF& buf, uint offset = 0) // zwraca {dlugosc, ile bajtow na dlugosc}
+        /// \brief metoda odczytująca długość zakodowaną jako 1 lub więcej bajtów z bufora bajtów
+        ///
+        /// Zwraca parę intów (a,b) gdzie a - odczytana długość b - ile bajtów zajęła długość - 1
+        std::pair<int, int> readLength(const BYTE_BUF& buf, uint offset = 0)
         {
+            // jednobajtowa
             if (!(buf[offset+1] & 0x80))
             {
                 return std::make_pair(buf[offset+1], 0);
             }
+            // wielobajtowa
             else
             {
-                uint len_of_len = buf[offset+1] - 0x80;
+                uint len_of_len = buf[offset+1] - 0x80; // usuwamy najstarszy bit ktory jest 1
                 uint length = 0;
                 for(int i = 0; i < len_of_len; i++)
                 {
-                    length += buf[offset + (len_of_len - i + 1)] << 8*i;
+                    length += buf[offset + (len_of_len - i + 1)] << 8*i; // odczytujemy wartosc z bajtow
                 }
                 return std::make_pair(length, len_of_len);
             }
         }
+        
+        /// zapis do pliku
         void writeToFile(std::string filename)
         {
             BYTE_BUF buf;
             writeToBuf(buf);
             buf.writeToFile(filename);
         }
+        
+        /// odczyt z pliku
         void readFromFile(std::string filename)
         {
             BYTE_BUF buf;
@@ -101,11 +133,21 @@ class ASNobject: public IStorable
         }
 };
 
-
+/// \brief klasa ASN_INTEGERA
+///
+/// tag: 0x02
+///
+/// typ przechowujący wartość: int value
+///
+/// kodowanie: [tag][długość (1 lub więcej bajtów)][wartość jako U2 ze znakiem]
+///  gdzie wartość zawiera się w minimalnej ilości bajtów
 class ASN_INTEGER: public ASNobject
 {
     protected:
+        /// wartość
         int value;
+        /// metoda pomocnicza wywoływana przy zmianie wartości (przez użytkownika lub z odczytu z bufora/pliku)
+        ///  w celu zaaktualizowania pola length
         void setLength()
         {
             int l = 1;
@@ -163,13 +205,24 @@ class ASN_INTEGER: public ASNobject
 };
 
 
+/// \brief Klasa ASN_BITSTRING
+///
+/// tag: 0x03
+///
+/// typ przechowujący zawartość: BIT_ARRAY
+///
+/// kodowanie: [tag][długość(1 lub więcej bajtów)][nieżywane bity][bajty ciągu binarnego]
+///  gdzie [nieużywane bity] określa ile bitów na końcu ostatniego bajtu nie wchodzi do ciągu
 class ASN_BITSTRING: public ASNobject
 {
     private:
+        /// metoda pomocnicza wywoływana przy zmianie wartości (przez użytkownika lub z odczytu z bufora/pliku)
+        ///  w celu zaaktualizowania pola length
         void setLength()
         {
             length = (bits.size() / 8) + 1 + 1; // + 1 na unused
         }
+        /// zawartość
         BIT_ARRAY bits;
     public:
         ASN_BITSTRING() {tag = 0x03;}
@@ -204,12 +257,22 @@ class ASN_BITSTRING: public ASNobject
         }
 };
 
+/// \brief Klasa ASN_ENUMERATED
+///
+/// tag: 0x02
+///
+/// typ przechowujący zawartość: int
+///
+/// kodowanie: jak ASN_INTEGER
+///  z tą różnicą, że może przyjąć tylko określone wartości
 class ASN_ENUMERATED: public ASN_INTEGER
 
 {
     protected:
+        /// mapa dozwolonych wartości i ich nazw
         std::unordered_map<std::string, int> value_dict;
         
+        /// metoda określająca czy dana wartość jest dozwolona
         bool isInDict(int value)
         {
             for (auto it = value_dict.begin(); it != value_dict.end(); it++)
@@ -221,6 +284,7 @@ class ASN_ENUMERATED: public ASN_INTEGER
         }
         
     public:
+        // tak jak INTEGER tyle ze sprawdza czy wartosc jest w mapie
         void readFromBuf(const BYTE_BUF &buf, uint offset = 0);
         
         
@@ -228,29 +292,13 @@ class ASN_ENUMERATED: public ASN_INTEGER
         {
             tag = 0x02;
         }
+
         
-        ASN_ENUMERATED(std::initializer_list<std::string> il)
-        {
-            tag = 0x02;
-            int i = 0;
-            for (auto it = il.begin(); it != il.end(); it++)
-            {
-                value_dict.insert({(*it), i});
-                i++;
-            }
-        }
-        ASN_ENUMERATED(std::initializer_list<std::pair<std::string, int>> il)
-        {
-            tag = 0x02;
-            for (auto it = il.begin(); it != il.end(); it++)
-            {
-                value_dict.insert((*it));
-            }
-        }
-        
+        /// \brief przypisanie nazw wartości poprzez listę stringów
+        ///
+        /// przypisuje nazwom domyślne wartości 0,1,2,... w kolejności ich wystąpienia
         void operator=(const std::initializer_list<std::string> il)
         {
-            value_dict.clear();
             int i = 0;
             for (auto it = il.begin(); it != il.end(); it++)
             {
@@ -258,13 +306,13 @@ class ASN_ENUMERATED: public ASN_INTEGER
                 i++;
             }
         }
-        void operator=(const std::initializer_list<std::pair<std::string, int>> il)
+        
+        /// \brief przypisanie nazw wartości i ich wartości przez mapę stringów i intów
+        ///
+        /// Określa dokładnie jakie wartości mają dane nazwy
+        void operator=(const std::unordered_map<std::string, int> &map)
         {
-            value_dict.clear();
-            for (auto it = il.begin(); it != il.end(); it++)
-            {
-                value_dict.insert((*it));
-            }
+            value_dict = map;
         }
         
         
@@ -288,7 +336,7 @@ class ASN_ENUMERATED: public ASN_INTEGER
             setLength();
         }
         
-        
+        /// konwersja do nazwy tekstowej określającej wartość
         std::string toStr() const
         {
             for (auto it = value_dict.begin(); it != value_dict.end(); it++)
@@ -306,9 +354,18 @@ class ASN_ENUMERATED: public ASN_INTEGER
     
 };
 
-class ASN_UTF8STRING: public ASNobject // naiwna implementacja, nie sprawdza poprawnosci z UTF8
+/// \brief Klasa ASN_UTR8STRING
+///
+/// tag: 0x0C
+///
+/// typ przechowujący zawartość: std::string
+///
+/// kodowanie: [tag][długość][ciąg charów]
+class ASN_UTF8STRING: public ASNobject
 {
     private:
+        /// metoda pomocnicza wywoływana przy zmianie wartości (przez użytkownika lub z odczytu z bufora/pliku)
+        ///  w celu zaaktualizowania pola length
         void setLength()
         {
             length = utf8string.size();
@@ -358,16 +415,25 @@ class ASN_UTF8STRING: public ASNobject // naiwna implementacja, nie sprawdza pop
         }
 };
 
+/// \brief Klasa ASN_SEQUENCE
+///
+/// tag: 0x30
+///
+/// typ przechowujący wartość: std::vector<ASNobject *>
+/// 
+/// kodowanie: [tag][długość][obiekty zawierające się]
 class ASN_SEQUENCE: public ASNobject
 {
     protected:
-        std::vector<ASNobject *> object_ptrs;
+        std::vector<ASNobject *> object_ptrs; // wskaźniki na obiekty ASN w sekwencji
+        /// metoda pomocnicza wywoływana przy zmianie wartości (przez użytkownika lub z odczytu z bufora/pliku)
+        ///  w celu zaaktualizowania pola length
         void setLength()
         {
             int tmp = 0;
             for (auto it = object_ptrs.begin(); it != object_ptrs.end(); it++)
             {
-                tmp += (*it)->fullSize();
+                tmp += (*it)->fullSize(); // pelne dlugosci obiektow
             }
             length = tmp;
         }
@@ -377,36 +443,8 @@ class ASN_SEQUENCE: public ASNobject
         {
             tag = 0x30;
         }
-        
-        void writeToBuf(BYTE_BUF &buf)
-        {
-            setLength();
-            writeTLToBuf(buf);
-            
-            for (auto it = object_ptrs.begin(); it != object_ptrs.end(); it++)
-            {
-                (*it)->writeToBuf(buf);
-            }
-        }
-        
-        void readFromBuf(const BYTE_BUF &buf, uint offset = 0)
-        {
-            if (buf[offset] != tag)
-                throw("Not an ASN sequence");
-            std::pair<int,int> length_offset = readLength(buf,offset);
-            length = length_offset.first;
-            uint off_seq = length_offset.second;
-            //length = buf[offset+1];
-            
-            int off = offset + 2 + off_seq;
-            for (auto it = object_ptrs.begin(); it != object_ptrs.end(); it++)
-            {
-                if (off - (offset + 2) == length)
-                    break;
-                (*it)->readFromBuf(buf, off);
-                off += (*it)->fullSize();
-            }
-        }
+        void writeToBuf(BYTE_BUF &buf);
+        void readFromBuf(const BYTE_BUF &buf, uint offset = 0);
         
 };
 #endif

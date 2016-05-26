@@ -1,3 +1,9 @@
+/** \file
+ * Name: osoba.hpp
+ * Purpose: klasa Osoby
+ * @author: Agata Kłoss
+*/ 
+
 #ifndef OSOBA_HEADER
 #define OSOBA_HEADER
 

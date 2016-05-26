@@ -2,7 +2,7 @@
  * \section autor Autor - Agata Kłoss
  * \section project_desc Opis projektu
  * 
- * Zadaniem w projekcie było zaprojektować i zaimplementować BLA BLA BLA
+ * 
  * 
  * \section compilation Kompilacja testów
  * Testy można skompilować przy użyciu cmake i make:
@@ -135,23 +135,17 @@ TEST(BITSTRING, readFromBuf)
 TEST(ENUMERATED, readFromBuf)
 {
     ASN_ENUMERATED x;
-    
-    x = {"x", "y", "z"};
-    
+    std::unordered_map<std::string, int> f = {{"x", 0}, {"y", 1}, {"z", 2}};
+    x = f;
     BYTE_BUF buf;
     
     buf.push_back(0x02);
     buf.push_back(1);
     
     buf.push_back(0);
-    try
-    {
-        x.readFromBuf(buf);
-    }
-    catch(std::string msg)
-    {
-        std::cout << msg << std::endl;
-    }
+
+    x.readFromBuf(buf);
+    EXPECT_EQ(x, 0);
     EXPECT_EQ(std::string(x), "x");
     
     buf[2] = 1;
@@ -247,11 +241,11 @@ TEST(OSOBA, file)
     EXPECT_EQ(m.zainteresowania, n.zainteresowania);
 }
 
-// big guns :D
+// testy na duzej ilosci danych
 
 TEST(INTEGER, manyInts)
 {
-    std::ifstream f("test_int.txt"); // 10000 losowych intow 8)
+    std::ifstream f("test_int.txt"); // 10000 losowych intow
     if (f.is_open())
     {
         ASN_INTEGER z;
@@ -285,7 +279,7 @@ TEST(UTF8STRING, bigLength)
 }
 TEST(UTF8STRING, manyStrings)
 {
-    std::ifstream f("test_str.txt"); // 10000 losowych stringow utf8 8)
+    std::ifstream f("test_str.txt"); // 10000 losowych stringow utf8
     if (f.is_open())
     {
         ASN_UTF8STRING z;

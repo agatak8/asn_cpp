@@ -1,15 +1,23 @@
+/** \file
+ * Name: types.hpp
+ * Purpose: typy pomocnicze używane przez klasy ASN
+ * @author: Agata Kłoss
+*/ 
+
 #ifndef TYPES_H_
 #define TYPES_H_
 #include <iostream>
 #include <fstream>
 #include <vector>
 
+/// interfejs zapisywania do pliku
 class IStorable
 {
 	public:
 		virtual void writeToFile(std::string filename) = 0;
 };
 
+/// interfejs wyświetlania na ekran
 class IDisplayable
 {
 	public:
@@ -18,10 +26,13 @@ class IDisplayable
 
 typedef unsigned char BYTE;
 typedef bool BIT;
+/// ciąg binarny do BITSTRING
 typedef std::vector<BIT> BIT_ARRAY;
 typedef unsigned char uint8;
 typedef signed char int8;
 typedef unsigned int uint;
+
+/// bufor bajtów
 class BYTE_BUF: public std::vector<BYTE>, public IStorable
 {
     public:
