@@ -1,11 +1,12 @@
 #ifndef OSOBA_HEADER
 #define OSOBA_HEADER
 
+#include <iostream>
 #include "asn.hpp"
 
 enum interests {NARTY=1, LYZWY=2, KSIAZKI=4, PLYWANIE=8};
 
-class Osoba: public ASN_SEQUENCE
+class Osoba: public ASN_SEQUENCE, public IDisplayable
 {
     public:
         ASN_UTF8STRING imie;
@@ -27,5 +28,41 @@ class Osoba: public ASN_SEQUENCE
             object_ptrs = {&imie, &nazwisko, &wiek, &plec, &zainteresowania};
         }
         
+        void display()
+        {
+            std::cout << "Imię: " << (std::string)imie << std::endl;
+            std::cout << "Nazwisko: " << (std::string)nazwisko << std::endl;
+            std::cout << "Wiek: "  << wiek << std::endl;
+            std::cout << "Płeć: ";
+            if (plec == 0)
+            {
+                std::cout << "kobieta";
+            }
+            else
+            {
+                std::cout << "mężczyzna";
+            }
+            std::cout << std::endl;
+            
+            std::cout << "Zainteresowania: ";
+            if (zainteresowania & NARTY)
+            {
+                std::cout << "narty, ";
+            }
+            if (zainteresowania & LYZWY)
+            {
+                std::cout << "łyżwy, ";
+            }
+            if (zainteresowania & KSIAZKI)
+            {
+                std::cout << "książki, ";
+            }
+            if (zainteresowania & PLYWANIE)
+            {
+                std::cout << "pływanie, ";
+            }
+            std::cout << std::endl;
+            
+        }
 };
 #endif
