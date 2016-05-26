@@ -36,15 +36,17 @@ void ASN_INTEGER::readFromBuf(const BYTE_BUF &buf, uint offset)
    if (buf[offset] != tag) throw("not an ASN integer");
    else
    {
-       length = buf[offset + 1];
+       std::pair<int,int> length_offset = readLength(buf,offset);
+       length = length_offset.first;
+       uint off = length_offset.second;
        value = 0;
        for(int i = 0; i < length - 1; i++)
        {
-           value += buf[offset + (length - i + 1)] << 8*i;
+           value += buf[offset + (length - i + 1) + off] << 8*i;
        }
        
        // ostatni bajt
-       BYTE tmp_val = (buf[offset + 2]);
+       BYTE tmp_val = (buf[offset + 2 + off]);
        if (tmp_val & 0x80) // int ujemny
        {
            value += (tmp_val - 0x80) << 8*(length - 1);
@@ -102,8 +104,12 @@ void ASN_BITSTRING::readFromBuf(const BYTE_BUF &buf, uint offset)
 {
     if (buf[offset] != tag) throw ("Not an ASN BITSTRING");
     
-    length = buf[offset + 1]; // ilosc bajtow wlacznie z unused
-    int8 unused = buf[offset + 2];
+    std::pair<int,int> length_offset = readLength(buf,offset);
+    length = length_offset.first;
+    uint off = length_offset.second;
+    
+    //length = buf[offset + 1]; // ilosc bajtow wlacznie z unused
+    int8 unused = buf[offset + 2 + off];
     
     int j_limit;
     
@@ -115,7 +121,7 @@ void ASN_BITSTRING::readFromBuf(const BYTE_BUF &buf, uint offset)
     
     for(int i=0; i < length - 1; i++)
     {
-        byte_tmp = buf[offset + (i+3)];
+        byte_tmp = buf[offset + (i+3) + off];
         
         
         if (i != length - 2)
@@ -137,14 +143,18 @@ void ASN_ENUMERATED::readFromBuf(const BYTE_BUF &buf, uint offset)
    if (buf[offset] != tag) throw("not an ASN enumerated");
    else
    {
+       std::pair<int,int> length_offset = readLength(buf,offset);
+       length = length_offset.first;
+       uint off = length_offset.second;
+       
        int tmp_value;
-       length = buf[offset+1];
+       //length = buf[offset+1];
 
 
        tmp_value = 0;
        for(int i = 0; i < length; i++)
        {
-           tmp_value += buf[offset + (length - i + 1)] << 8*i;
+           tmp_value += buf[offset + (length - i + 1) + off] << 8*i;
        }
        
        if (isInDict(tmp_value))
@@ -164,16 +174,18 @@ void ASN_UTF8STRING::readFromBuf(const BYTE_BUF &buf, uint offset)
 {
     if (buf[offset] != tag)
     {
-        std::cout << buf[offset] << ' ' << offset << std::endl;
         throw("not an ASN_UTF8STRING");
     }
     
-    length = buf[offset + 1];
+    std::pair<int,int> length_offset = readLength(buf,offset);
+    length = length_offset.first;
+    uint off = length_offset.second;
+    //length = buf[offset + 1];
     utf8string.clear();
     
     for (int i = 0; i < length; i++)
     {
-        utf8string.push_back(buf[offset + (i+2)]);
+        utf8string.push_back(buf[offset + (i+2) + off]);
     }
     isSet = true;
 }

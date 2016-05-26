@@ -270,6 +270,19 @@ TEST(INTEGER, manyInts)
     }
     
 }
+
+TEST(UTF8STRING, bigLength)
+{
+    BYTE_BUF buf;
+    ASN_UTF8STRING z;
+    std::string m = "πrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyoko"; // > 128 bajtow
+    z = m;
+    z.writeToBuf(buf);
+    z = "";
+    z.readFromBuf(buf);
+    
+    EXPECT_EQ((std::string)z, m);
+}
 TEST(UTF8STRING, manyStrings)
 {
     std::ifstream f("test_str.txt"); // 10000 losowych stringow utf8 8)
@@ -278,7 +291,7 @@ TEST(UTF8STRING, manyStrings)
         ASN_UTF8STRING z;
         std::string tmp;
         BYTE_BUF buf;
-        while (f >> tmp)
+        while (getline(f, tmp))
         {
             buf.clear();
             z = tmp;

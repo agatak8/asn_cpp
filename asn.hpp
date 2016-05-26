@@ -51,7 +51,7 @@ class ASNobject: public IStorable
             buf.push_back(tag);
             if (length < 128)
                 buf.push_back(length);
-            else
+            else //TODO
             {
                 uint tmp_len = length;
                 BYTE len_of_len = 1;
@@ -64,9 +64,27 @@ class ASNobject: public IStorable
                 
                 for(int i = 0; i < len_of_len; i++)
                 {
-                    buf.push_back((length & (0xFF << 8*(length - i - 1))) >> 8*(length - i - 1)); // nakladamy maske i dosuwamy do prawej aby otrzymac bajt
+                    buf.push_back((length & (0xFF << 8*(len_of_len - i - 1))) >> 8*(len_of_len - i - 1)); // nakladamy maske i dosuwamy do prawej aby otrzymac bajt
                 }
                 
+            }
+        }
+        
+        std::pair<int, int> readLength(const BYTE_BUF& buf, uint offset = 0) // zwraca {dlugosc, ile bajtow na dlugosc}
+        {
+            if (!(buf[offset+1] & 0x80))
+            {
+                return std::make_pair(buf[offset+1], 0);
+            }
+            else
+            {
+                uint len_of_len = buf[offset+1] - 0x80;
+                uint length = 0;
+                for(int i = 0; i < len_of_len; i++)
+                {
+                    length += buf[offset + (len_of_len - i + 1)] << 8*i;
+                }
+                return std::make_pair(length, len_of_len);
             }
         }
         void writeToFile(std::string filename)
@@ -375,9 +393,12 @@ class ASN_SEQUENCE: public ASNobject
         {
             if (buf[offset] != tag)
                 throw("Not an ASN sequence");
-            length = buf[offset+1];
+            std::pair<int,int> length_offset = readLength(buf,offset);
+            length = length_offset.first;
+            uint off_seq = length_offset.second;
+            //length = buf[offset+1];
             
-            int off = offset + 2;
+            int off = offset + 2 + off_seq;
             for (auto it = object_ptrs.begin(); it != object_ptrs.end(); it++)
             {
                 if (off - (offset + 2) == length)
