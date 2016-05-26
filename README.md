@@ -6,3 +6,5 @@ build with: cmake $PWD && make
 then run: bin/Test
 
 python test_gen.py will generate test_int.txt and test_str.txt for unit tests
+
+Comments are in Polish because this is a project for class.
