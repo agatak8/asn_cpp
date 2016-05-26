@@ -10,6 +10,7 @@
 #include <fstream>
 #include <vector>
 
+#include "except.hpp"
 /// interfejs zapisywania do pliku
 class IStorable
 {
@@ -46,6 +47,10 @@ class BYTE_BUF: public std::vector<BYTE>, public IStorable
                 file.write((char*)data(), (int)size());
                 file.close();
             }
+            else
+            {
+                throw(Exception(FILE_NOT_OPEN));
+            }
         }
         
         void readFromFile(std::string filename)
@@ -60,6 +65,10 @@ class BYTE_BUF: public std::vector<BYTE>, public IStorable
                 file.seekg (0, std::ios::beg);
                 file.read((char*)data(), size);
                 file.close();
+            }
+            else
+            {
+                throw(Exception(FILE_NOT_OPEN));
             }
         }
 };

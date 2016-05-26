@@ -11,7 +11,7 @@ void ASN_INTEGER::writeToBuf(BYTE_BUF &buf)
 {
     if (!isSet)
     {
-        throw("cannot write empty ASNobject");
+        throw(Exception(EMPTY_OBJECT));
     }
     writeTLToBuf(buf);
     
@@ -38,7 +38,7 @@ void ASN_INTEGER::writeToBuf(BYTE_BUF &buf)
 
 void ASN_INTEGER::readFromBuf(const BYTE_BUF &buf, uint offset)
 {
-   if (buf[offset] != tag) throw("not an ASN integer");
+   if (buf[offset] != tag) throw(Exception(INVALID_TAG));
    else
    {
        std::pair<int,int> length_offset = readLength(buf,offset);
@@ -72,11 +72,12 @@ void ASN_INTEGER::readFromBuf(const BYTE_BUF &buf, uint offset)
 void ASN_BITSTRING::writeToBuf(BYTE_BUF &buf)
 {
     
-    if (!isSet)
+    if (bits.size() == 0)
     {
-        throw("cannot write empty ASNobject");
+        throw(Exception(EMPTY_OBJECT));
     }
     
+    setLength();
     writeTLToBuf(buf);
     
     BYTE byte_tmp, bit_tmp;
@@ -146,7 +147,7 @@ void ASN_BITSTRING::readFromBuf(const BYTE_BUF &buf, uint offset)
 
 void ASN_ENUMERATED::readFromBuf(const BYTE_BUF &buf, uint offset)
 {
-   if (buf[offset] != tag) throw("not an ASN enumerated");
+   if (buf[offset] != tag) throw(Exception(INVALID_TAG));
    else
    {
        std::pair<int,int> length_offset = readLength(buf,offset);
@@ -168,7 +169,7 @@ void ASN_ENUMERATED::readFromBuf(const BYTE_BUF &buf, uint offset)
        }
        else
        {
-           throw("ASN_ENUMERATED: value not in value dict");
+           throw(Exception(WRONG_ENUM_VALUE));
        }
    }
    
@@ -179,7 +180,7 @@ void ASN_UTF8STRING::readFromBuf(const BYTE_BUF &buf, uint offset)
 {
     if (buf[offset] != tag)
     {
-        throw("not an ASN_UTF8STRING");
+        throw(Exception(INVALID_TAG));
     }
     
     std::pair<int,int> length_offset = readLength(buf,offset);
@@ -199,7 +200,7 @@ void ASN_UTF8STRING::writeToBuf(BYTE_BUF &buf)
 {
     if (!isSet)
     {
-        throw("cannot write empty ASNobject");
+        throw(Exception(EMPTY_OBJECT));
     }
     
     writeTLToBuf(buf);
@@ -224,7 +225,7 @@ void ASN_SEQUENCE::writeToBuf(BYTE_BUF &buf)
 void ASN_SEQUENCE::readFromBuf(const BYTE_BUF &buf, uint offset)
 {
     if (buf[offset] != tag)
-        throw("Not an ASN sequence");
+        throw(Exception(INVALID_TAG));
         
     std::pair<int,int> length_offset = readLength(buf,offset);
     length = length_offset.first; // ile bajtów do odczytu

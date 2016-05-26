@@ -2,7 +2,7 @@
  * \section autor Autor - Agata Kłoss
  * \section project_desc Opis projektu
  * 
- * 
+ * Implementacja danych klas ASN oraz klas interfejsów.
  * 
  * \section compilation Kompilacja testów
  * Testy można skompilować przy użyciu cmake i make:
@@ -139,7 +139,7 @@ TEST(ENUMERATED, readFromBuf)
     x = f;
     BYTE_BUF buf;
     
-    buf.push_back(0x02);
+    buf.push_back(0x0A);
     buf.push_back(1);
     
     buf.push_back(0);
