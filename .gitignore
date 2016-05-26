@@ -1,0 +1,8 @@
+*.cmake
+bin/*
+lib/*
+*/Makefile
+Makefile
+CMakeCache.txt
+CMakeFiles/*
+googletest/CMakeFiles/*/*
