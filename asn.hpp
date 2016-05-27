@@ -13,6 +13,7 @@
 #include <initializer_list>
 
 #include "types.hpp"
+#include "except.hpp"
 
 
 /// \brief główna klasa ASN
@@ -56,6 +57,7 @@ class ASNobject: public IStorable
 		virtual void readFromBuf(const BYTE_BUF &buf, uint offset = 0) = 0;
         
         /// \brief metoda zapisu tagu i długości do bufora
+        ///
         /// Najpierw zapisuje bajt tagu. 
         /// Jeśli długość < 128 to zapisuje ją na jednym bajcie,
         ///  w przeciwnym wypadku pierwszy bit pierwszego bajtu to 1
@@ -226,6 +228,11 @@ class ASN_BITSTRING: public ASNobject
         BIT_ARRAY bits;
     public:
         ASN_BITSTRING() {tag = 0x03;}
+        ASN_BITSTRING(uint size)
+        {
+            tag = 0x03;
+            bits.resize(size);
+        }
         ASN_BITSTRING(BIT_ARRAY &bits): bits(bits)
         {
             tag = 0x03;
@@ -236,12 +243,12 @@ class ASN_BITSTRING: public ASNobject
         void writeToBuf(BYTE_BUF &buf);
         void readFromBuf(const BYTE_BUF &buf, uint offset = 0);
         
-        BIT operator[] (uint i)
+        std::vector<bool>::reference operator[] (uint i)
         {
-            if (isSet)
+            if (bits.size() != 0)
                 return bits[i];
             else
-                throw("Cannot access empty ASN_BITSTRING");
+                throw(Exception(EMPTY_OBJECT));
         }
         
         void operator= (const BIT_ARRAY& src_bits)
@@ -290,7 +297,7 @@ class ASN_ENUMERATED: public ASN_INTEGER
         
         ASN_ENUMERATED()
         {
-            tag = 0x02;
+            tag = 0x0A;
         }
 
         
@@ -326,7 +333,7 @@ class ASN_ENUMERATED: public ASN_INTEGER
             }
             else
             {
-                throw("ASN_ENUMERATED: tried to set to value not in value dict");
+                throw(Exception(WRONG_ENUM_VALUE));
             }
         }
         
@@ -344,7 +351,7 @@ class ASN_ENUMERATED: public ASN_INTEGER
                 if (it->second == value)
                     return it->first;
             }
-            throw("ASN_ENUMERATED: somehow, the internal value was not in the internal value dictionary.");
+            throw(Exception(WRONG_ENUM_VALUE));
             return "";
         }
         operator std::string() const

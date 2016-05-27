@@ -269,7 +269,7 @@ TEST(UTF8STRING, bigLength)
 {
     BYTE_BUF buf;
     ASN_UTF8STRING z;
-    std::string m = "πrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyokoπrazyoko"; // > 128 bajtow
+    std::string m = "Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków Ciąg znaków";
     z = m;
     z.writeToBuf(buf);
     z = "";
