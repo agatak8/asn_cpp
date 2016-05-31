@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include "asn.hpp"
 #include "osoba.hpp"
 #include "gtest/gtest.h"
@@ -250,6 +251,7 @@ TEST(INTEGER, manyInts)
     {
         ASN_INTEGER z;
         int tmp;
+        
         BYTE_BUF buf;
         while (f >> tmp)
         {

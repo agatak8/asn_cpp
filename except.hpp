@@ -1,7 +1,7 @@
 #ifndef EXCEPT_HEADER
 #define EXCEPT_HEADER
 
-enum except_ids {INVALID_TAG, EMPTY_OBJECT, WRONG_ENUM_VALUE, FILE_NOT_OPEN};
+enum except_ids {INVALID_TAG, EMPTY_OBJECT, WRONG_ENUM_VALUE, FILE_NOT_OPEN, ARRAY_OUT_OF_BOUNDS};
 
 class Exception
 {
@@ -25,6 +25,8 @@ class Exception
                 case(FILE_NOT_OPEN):
                     return "Couldn't open file for reading/writing.";
                     break;
+                case(ARRAY_OUT_OF_BOUNDS):
+                    return "Tried to access an element out of the array's bounds.";
                 default:
                     return "Undefined exception thrown.";
             }

@@ -69,7 +69,7 @@ class ASNobject: public IStorable
             buf.push_back(tag);
             if (length < 128)
                 buf.push_back(length);
-            else //TODO
+            else
             {
                 uint tmp_len = length;
                 BYTE len_of_len = 1; // na ilu bajtach zakodowana dlugosc
@@ -194,8 +194,7 @@ class ASN_INTEGER: public ASNobject
         
         operator const int() const
         {
-            int x = value;
-            return x;
+            return value;
         }
         
         void operator=(int value)
@@ -412,7 +411,7 @@ class ASN_UTF8STRING: public ASNobject
         const char& operator[] (uint i) const
         {
             if (i >= utf8string.size())
-                throw ("ASN_UTF8STRING: array out of bounds");
+                throw (Exception(ARRAY_OUT_OF_BOUNDS));
             return utf8string[i];
         }
         

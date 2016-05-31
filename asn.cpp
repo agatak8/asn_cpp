@@ -110,7 +110,7 @@ void ASN_BITSTRING::writeToBuf(BYTE_BUF &buf)
 
 void ASN_BITSTRING::readFromBuf(const BYTE_BUF &buf, uint offset)
 {
-    if (buf[offset] != tag) throw ("Not an ASN BITSTRING");
+    if (buf[offset] != tag) throw (Exception(INVALID_TAG));
     
     std::pair<int,int> length_offset = readLength(buf,offset);
     length = length_offset.first; // ile bajtów do odczytu (wraz z bajtem unused)
